@@ -1,0 +1,7 @@
+"./Src/main.o"
+"./Src/syscalls.o"
+"./Src/sysmem.o"
+"./Src/system_stm32f7xx.o"
+"./Src/usb_core.o"
+"./Src/usb_desc.o"
+"./Startup/startup_stm32f723vetx.o"
