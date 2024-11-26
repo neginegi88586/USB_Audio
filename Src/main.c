@@ -40,7 +40,7 @@ void System_Clock_Config(void)
 	RCC->CR |= RCC_CR_HSEON;
 	RCC->CR &= ~RCC_CR_HSEBYP;
 
-	while(!RCC->CR & RCC_CR_HSERDY);
+	while(!(RCC->CR & RCC_CR_HSERDY));
 
 	RCC->CR &= ~RCC_CR_PLLON;
 	RCC->PLLCFGR = RCC_PLLCFGR_PLLSRC_HSE|
