@@ -5,19 +5,19 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../Src/System/Driver/clock_config.c \
+../Src/System/Driver/clock.c \
 ../Src/System/Driver/gpio.c \
 ../Src/System/Driver/interrupt.c \
 ../Src/System/Driver/system_config.c 
 
 OBJS += \
-./Src/System/Driver/clock_config.o \
+./Src/System/Driver/clock.o \
 ./Src/System/Driver/gpio.o \
 ./Src/System/Driver/interrupt.o \
 ./Src/System/Driver/system_config.o 
 
 C_DEPS += \
-./Src/System/Driver/clock_config.d \
+./Src/System/Driver/clock.d \
 ./Src/System/Driver/gpio.d \
 ./Src/System/Driver/interrupt.d \
 ./Src/System/Driver/system_config.d 
@@ -30,7 +30,7 @@ Src/System/Driver/%.o Src/System/Driver/%.su Src/System/Driver/%.cyclo: ../Src/S
 clean: clean-Src-2f-System-2f-Driver
 
 clean-Src-2f-System-2f-Driver:
-	-$(RM) ./Src/System/Driver/clock_config.cyclo ./Src/System/Driver/clock_config.d ./Src/System/Driver/clock_config.o ./Src/System/Driver/clock_config.su ./Src/System/Driver/gpio.cyclo ./Src/System/Driver/gpio.d ./Src/System/Driver/gpio.o ./Src/System/Driver/gpio.su ./Src/System/Driver/interrupt.cyclo ./Src/System/Driver/interrupt.d ./Src/System/Driver/interrupt.o ./Src/System/Driver/interrupt.su ./Src/System/Driver/system_config.cyclo ./Src/System/Driver/system_config.d ./Src/System/Driver/system_config.o ./Src/System/Driver/system_config.su
+	-$(RM) ./Src/System/Driver/clock.cyclo ./Src/System/Driver/clock.d ./Src/System/Driver/clock.o ./Src/System/Driver/clock.su ./Src/System/Driver/gpio.cyclo ./Src/System/Driver/gpio.d ./Src/System/Driver/gpio.o ./Src/System/Driver/gpio.su ./Src/System/Driver/interrupt.cyclo ./Src/System/Driver/interrupt.d ./Src/System/Driver/interrupt.o ./Src/System/Driver/interrupt.su ./Src/System/Driver/system_config.cyclo ./Src/System/Driver/system_config.d ./Src/System/Driver/system_config.o ./Src/System/Driver/system_config.su
 
 .PHONY: clean-Src-2f-System-2f-Driver
 

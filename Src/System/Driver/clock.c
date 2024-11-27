@@ -5,7 +5,7 @@
  *      Author: idune
  */
 
-#include "clock_config.h"
+#include <clock.h>
 
 Error_HandleTypeDef Clock_Setup_OSC(OSC_ConfigSetTypeDef *osc_config)
 {
@@ -163,7 +163,7 @@ Error_HandleTypeDef Clock_Setup_Clock(Clock_ConfigTypeDef *clock_config)
 
 		TickStart = uwTick;
 
-		while((RCC->CFGR) & RCC_CFGR_SWS == (clock_config->SYSCLK_SOURCE) << RCC_CFGR_SWS_Pos)
+		while((RCC->CFGR & RCC_CFGR_SWS) == (clock_config->SYSCLK_SOURCE) << RCC_CFGR_SWS_Pos)
 		{
 			if((uwTick - TickStart) > CLK_SW_TIMEOUT_VALUE)
 			{
@@ -230,4 +230,17 @@ uint32_t Get_SysClock_Freq(void)
 	Tick_Init(uwTickPrio);
 
 	return sysclock_freq;
+}
+
+void Delay_Ms(uint32_t delay_time)
+{
+	uint32_t TickStart = uwTick;
+	uint32_t wait = delay_time;
+
+	if(wait < 0xffffffffU)
+	{
+		wait += (uint32_t)1;
+	}
+
+	while((uwTick - TickStart) < wait);
 }

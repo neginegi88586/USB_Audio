@@ -16,9 +16,9 @@
  ******************************************************************************
  */
 
-#include "main.h"
+#include "clock.h"
 #include "system_config.h"
-#include "clock_config.h"
+#include "main.h"
 #include "gpio.h"
 
 
@@ -44,7 +44,10 @@ int main(void)
 
 	while(1)
 	{
-
+		GPIO_Write(GPIOA, (1<<0), GPIO_SET);
+		Delay_Ms(500);
+		GPIO_Write(GPIOA, (1<<0), GPIO_RESET);
+		Delay_Ms(500);
 	}
 }
 
@@ -123,7 +126,7 @@ static void GPIO_Init(void)
 	GPIO_Config(GPIOA, &config);
 
 
-	config.PIN = (1 << 8);
+	config.PIN = (1 << 0);
 	config.MODE = GPIO_MODE_OUTPUT_PP;
 	config.PULL = GPIO_NOPULL;
 	config.SPEED = GPIO_SPEED_FREQ_LOW;

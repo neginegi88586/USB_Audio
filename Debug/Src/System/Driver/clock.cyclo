@@ -1,0 +1,4 @@
+../Src/System/Driver/clock.c:10:21:Clock_Setup_OSC	27
+../Src/System/Driver/clock.c:105:21:Clock_Setup_Clock	19
+../Src/System/Driver/clock.c:199:10:Get_SysClock_Freq	6
+../Src/System/Driver/clock.c:235:6:Delay_Ms	3

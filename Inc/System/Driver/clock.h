@@ -9,6 +9,7 @@
 #define SYSTEM_DRIVER_CLOCK_CONFIG_H_
 
 #include "main.h"
+#include "system_config.h"
 
 typedef enum
 {
@@ -167,5 +168,6 @@ typedef struct
 Error_HandleTypeDef Clock_Setup_OSC(OSC_ConfigSetTypeDef *osc_config);
 Error_HandleTypeDef Clock_Setup_Clock(Clock_ConfigTypeDef *clock_config);
 uint32_t Get_SysClock_Freq(void);
+void Delay_Ms(uint32_t delay_time);
 
 #endif /* SYSTEM_DRIVER_CLOCK_CONFIG_H_ */
