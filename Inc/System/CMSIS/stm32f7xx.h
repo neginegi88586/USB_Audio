@@ -256,6 +256,9 @@ typedef enum
 
 #ifdef USE_HAL_DRIVER
  #include "stm32f7xx_hal.h"
+#else
+#define HSE_VALUE    ((uint32_t)24000000)
+#define HSI_VALUE    ((uint32_t)16000000)
 #endif /* USE_HAL_DRIVER */
 
 #ifdef __cplusplus

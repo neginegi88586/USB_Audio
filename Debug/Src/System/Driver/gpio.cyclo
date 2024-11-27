@@ -1,0 +1,2 @@
+../Src/System/Driver/gpio.c:14:6:GPIO_Config	20
+../Src/System/Driver/gpio.c:105:6:GPIO_Write	2

@@ -2,6 +2,8 @@
 "./Src/System/CMSIS/sysmem.o"
 "./Src/System/CMSIS/system_stm32f7xx.o"
 "./Src/System/Driver/clock_config.o"
+"./Src/System/Driver/gpio.o"
+"./Src/System/Driver/interrupt.o"
 "./Src/System/Driver/system_config.o"
 "./Src/USB_Device/usb_core.o"
 "./Src/USB_Device/usb_desc.o"

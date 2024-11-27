@@ -1,1 +1,3 @@
-../Src/System/Driver/clock_config.c:10:21:Clock_Setup	11
+../Src/System/Driver/clock_config.c:10:21:Clock_Setup_OSC	27
+../Src/System/Driver/clock_config.c:105:21:Clock_Setup_Clock	19
+../Src/System/Driver/clock_config.c:199:10:Get_SysClock_Freq	6

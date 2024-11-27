@@ -10,6 +10,11 @@
 
 #include "main.h"
 
+
+#define TICK_INT_PRIORITY		3U
+
+
 void System_Config(void);
+void Tick_Init(uint32_t TickPriority);
 
 #endif /* INC_SYSTEM_DRIVER_SYSTEM_CONFIG_H_ */

@@ -17,9 +17,18 @@
  */
 
 #include "main.h"
+#include "system_config.h"
 #include "clock_config.h"
+#include "gpio.h"
+
+
+__IO uint32_t uwTick;
+uint32_t uwTickPrio = (1UL << __NVIC_PRIO_BITS);
+
 
 void System_Clock_Config(void);
+static void GPIO_Init(void);
+
 
 #if !defined(__SOFT_FP__) && defined(__ARM_FP)
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
@@ -27,7 +36,12 @@ void System_Clock_Config(void);
 
 int main(void)
 {
-    /* Loop forever */
+	System_Config();
+
+	System_Clock_Config();
+
+	GPIO_Init();
+
 	while(1)
 	{
 
@@ -36,10 +50,14 @@ int main(void)
 
 void System_Clock_Config(void)
 {
-	Clock_ConfigSetTypeDef config = {0};
+	OSC_ConfigSetTypeDef config = {0};
+	Clock_ConfigTypeDef clock_config = {0};
+	uint32_t TickStart;
+
 	SET_BIT(RCC->APB1ENR, RCC_APB1ENR_PWREN);
 	MODIFY_REG(PWR->CR1, PWR_CR1_VOS, PWR_CR1_VOS);
 
+	config.OSC_TYPE = OSC_TYPE_HSE;
 	config.HSE_SET.HSE_STATE = HSE_ON;
 	config.HSI_SET.HSI_STATE = HSI_OFF;
 	config.PLL_SET.PLL_STATE = PLL_ON;
@@ -48,7 +66,69 @@ void System_Clock_Config(void)
 	config.PLL_SET.PLLN = 216;
 	config.PLL_SET.PLLP = 0;
 	config.PLL_SET.PLLQ = 9;
+	if(Clock_Setup_OSC(&config) != STATE_OK)
+	{
+		Error_Handler();
+	}
 
+	SET_BIT(RCC->APB1ENR, RCC_APB1ENR_PWREN);
+	PWR->CR1 |= (uint32_t)PWR_CR1_ODEN;
+
+	TickStart = uwTick;
+	while(!(PWR->CSR1 & PWR_CSR1_ODRDY))
+	{
+		if((uwTick - TickStart) > 1000)
+		{
+			Error_Handler();
+		}
+	}
+
+	PWR->CR1 |= (uint32_t)PWR_CR1_ODSWEN;
+
+	TickStart = uwTick;
+	while(!(PWR->CSR1 & PWR_CSR1_ODSWRDY))
+	{
+		if((uwTick - TickStart) > 1000)
+		{
+			Error_Handler();
+		}
+	}
+
+	clock_config.CLOCK_TYPE = RCC_CLK_TYPE_SYSCLK | RCC_CLK_TYPE_HCLK | RCC_CLK_TYPE_PCLK1 | RCC_CLK_TYPE_PCLK2;
+	clock_config.SYSCLK_SOURCE = RCC_SYSCLKSOURCE_PLLCLK;
+	clock_config.AHBCLK_DIV = RCC_SYSCLK_DIV1;
+	clock_config.APB1CLK_DIV = RCC_HCLK_DIV4;
+	clock_config.APB2CLK_DIV = RCC_HCLK_DIV2;
+	clock_config.FLatency = FLASH_ACR_LATENCY_7WS;
+	if(Clock_Setup_Clock(&clock_config))
+	{
+		Error_Handler();
+	}
+}
+
+static void GPIO_Init(void)
+{
+	GPIO_ConfigTypeDef config = {0};
+
+	RCC_GPIOCLK_ENABLE(RCC_AHB1ENR_GPIOAEN);
+	RCC_GPIOCLK_ENABLE(RCC_AHB1ENR_GPIOBEN);
+	RCC_GPIOCLK_ENABLE(RCC_AHB1ENR_GPIOHEN);
+
+	config.PIN = (1 << 8);
+	config.MODE = GPIO_MODE_AF_PP;
+	config.PULL = GPIO_NOPULL;
+	config.SPEED = GPIO_SPEED_FREQ_LOW;
+	config.ALT = (uint8_t)0x00;
+
+	GPIO_Config(GPIOA, &config);
+
+
+	config.PIN = (1 << 8);
+	config.MODE = GPIO_MODE_OUTPUT_PP;
+	config.PULL = GPIO_NOPULL;
+	config.SPEED = GPIO_SPEED_FREQ_LOW;
+
+	GPIO_Config(GPIOA, &config);
 }
 
 void Error_Handler(void)

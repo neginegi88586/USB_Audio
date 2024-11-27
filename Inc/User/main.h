@@ -20,6 +20,10 @@ typedef enum
 	STATE_TIMEOUT,
 }Error_HandleTypeDef;
 
+extern __IO uint32_t uwTick;
+extern uint32_t uwTickPrio;
+
+
 void Error_Handler(void);
 
 #endif /* MAIN_H_ */
