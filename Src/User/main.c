@@ -16,9 +16,8 @@
  ******************************************************************************
  */
 
-#include <stdio.h>
-#include <stdint.h>
-#include "stm32f723xx.h"
+#include "main.h"
+#include "clock_config.h"
 
 void System_Clock_Config(void);
 
@@ -37,16 +36,23 @@ int main(void)
 
 void System_Clock_Config(void)
 {
-	RCC->CR |= RCC_CR_HSEON;
-	RCC->CR &= ~RCC_CR_HSEBYP;
+	Clock_ConfigSetTypeDef config = {0};
+	SET_BIT(RCC->APB1ENR, RCC_APB1ENR_PWREN);
+	MODIFY_REG(PWR->CR1, PWR_CR1_VOS, PWR_CR1_VOS);
 
-	while(!(RCC->CR & RCC_CR_HSERDY));
+	config.HSE_SET.HSE_STATE = HSE_ON;
+	config.HSI_SET.HSI_STATE = HSI_OFF;
+	config.PLL_SET.PLL_STATE = PLL_ON;
+	config.PLL_SET.PLLSRC = PLLSRC_HSE;
+	config.PLL_SET.PLLM = 12;
+	config.PLL_SET.PLLN = 216;
+	config.PLL_SET.PLLP = 0;
+	config.PLL_SET.PLLQ = 9;
 
-	RCC->CR &= ~RCC_CR_PLLON;
-	RCC->PLLCFGR = RCC_PLLCFGR_PLLSRC_HSE|
-			(0x0c<<RCC_PLLCFGR_PLLM_Pos)|
-			((0xd8<<6)<<RCC_PLLCFGR_PLLN_Pos)|
-			(0x00<<RCC_PLLCFGR_PLLP_Pos)|
-			(0x09<<RCC_PLLCFGR_PLLQ_Pos);
+}
 
+void Error_Handler(void)
+{
+	__disable_irq();
+	while(1);
 }

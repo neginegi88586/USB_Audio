@@ -22,6 +22,9 @@ C_DEPS :=
 
 # Every subdirectory with source files must be described here
 SUBDIRS := \
-Src \
+Src/System/CMSIS \
+Src/System/Driver \
+Src/USB_Device \
+Src/User \
 Startup \
 

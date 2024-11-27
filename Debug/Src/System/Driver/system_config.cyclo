@@ -1,0 +1,5 @@
+C:/Users/idune/STM32CubeIDE/workspace_1.16.1/USB_Audio/Inc/System/CMSIS/core_cm7.h:1865:22:__NVIC_SetPriorityGrouping	1
+C:/Users/idune/STM32CubeIDE/workspace_1.16.1/USB_Audio/Inc/System/CMSIS/core_cm7.h:1884:26:__NVIC_GetPriorityGrouping	1
+C:/Users/idune/STM32CubeIDE/workspace_1.16.1/USB_Audio/Inc/System/CMSIS/core_cm7.h:2024:22:__NVIC_SetPriority	2
+C:/Users/idune/STM32CubeIDE/workspace_1.16.1/USB_Audio/Inc/System/CMSIS/core_cm7.h:2071:26:NVIC_EncodePriority	2
+../Src/System/Driver/system_config.c:10:6:System_Config	1
