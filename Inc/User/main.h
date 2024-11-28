@@ -20,6 +20,12 @@ typedef enum
 	STATE_TIMEOUT,
 }Error_HandleTypeDef;
 
+typedef enum
+{
+	UNLOCKED = 0x00U,
+	LOCKED
+}LockTypeDef;
+
 extern __IO uint32_t uwTick;
 extern uint32_t uwTickPrio;
 

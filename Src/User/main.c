@@ -16,11 +16,14 @@
  ******************************************************************************
  */
 
+#include "main.h"
 #include "clock.h"
 #include "system_config.h"
-#include "main.h"
 #include "gpio.h"
+#include "uart.h"
 
+
+UART_HandleTypeDef huart1;
 
 __IO uint32_t uwTick;
 uint32_t uwTickPrio = (1UL << __NVIC_PRIO_BITS);
@@ -28,6 +31,7 @@ uint32_t uwTickPrio = (1UL << __NVIC_PRIO_BITS);
 
 void System_Clock_Config(void);
 static void GPIO_Init(void);
+static void UART_Init(void);
 
 
 #if !defined(__SOFT_FP__) && defined(__ARM_FP)
@@ -41,6 +45,7 @@ int main(void)
 	System_Clock_Config();
 
 	GPIO_Init();
+	UART_Init();
 
 	while(1)
 	{
@@ -107,6 +112,8 @@ void System_Clock_Config(void)
 	{
 		Error_Handler();
 	}
+
+	MCO_Config(RCC_MCO1, RCC_CFGR_MCO1_1, (uint32_t)0x00);
 }
 
 static void GPIO_Init(void)
@@ -120,7 +127,7 @@ static void GPIO_Init(void)
 	config.PIN = (1 << 8);
 	config.MODE = GPIO_MODE_AF_PP;
 	config.PULL = GPIO_NOPULL;
-	config.SPEED = GPIO_SPEED_FREQ_LOW;
+	config.SPEED = GPIO_SPEED_FREQ_HIGH;
 	config.ALT = (uint8_t)0x00;
 
 	GPIO_Config(GPIOA, &config);
@@ -132,6 +139,21 @@ static void GPIO_Init(void)
 	config.SPEED = GPIO_SPEED_FREQ_LOW;
 
 	GPIO_Config(GPIOA, &config);
+}
+
+static void UART_Init(void)
+{
+	huart1.INSTANCE = USART1;
+	huart1.INIT.BAUD = 115200;
+	huart1.INIT.WORD_LEN = 0x00U;
+	huart1.INIT.STOP_BIT = 0x00U;
+	huart1.INIT.PARITY = 0x00U;
+	huart1.INIT.MODE = (USART_CR1_TE | USART_CR1_RE);
+	huart1.INIT.FLOW_CTRL = 0x00U;
+	huart1.INIT.OVER_SAMPLE = 0x00U;
+	huart1.INIT.ONEB_SAMPLE = 0x00U;
+	huart1.ADV_INIT.ADV_FEAT_INIT = 0x00U;
+	UART_Config(&huart1);
 }
 
 void Error_Handler(void)

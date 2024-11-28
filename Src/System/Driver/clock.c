@@ -5,7 +5,18 @@
  *      Author: idune
  */
 
-#include <clock.h>
+#include "clock.h"
+#include "gpio.h"
+
+
+#define MCO1_CLK_ENABLE()	  	RCC_GPIOCLK_ENABLE(RCC_AHB1ENR_GPIOAEN)
+#define MCO1_GPIO_PORT        	GPIOA
+#define MCO1_PIN              	(1 << 8)
+
+#define MCO2_CLK_ENABLE()		RCC_GPIOCLK_ENABLE(RCC_AHB1ENR_GPIOCEN)
+#define MCO2_GPIO_PORT			GPIOC
+#define MCO2_PIN           	    (1 << 9)
+
 
 Error_HandleTypeDef Clock_Setup_OSC(OSC_ConfigSetTypeDef *osc_config)
 {
@@ -196,6 +207,38 @@ Error_HandleTypeDef Clock_Setup_Clock(Clock_ConfigTypeDef *clock_config)
 	return STATE_OK;
 }
 
+void MCO_Config(uint32_t MCOx, uint32_t MCO_SRC, uint32_t MCO_DIV)
+{
+	GPIO_ConfigTypeDef config;
+
+	if(MCOx == RCC_MCO1)
+	{
+		MCO1_CLK_ENABLE();
+
+		config.PIN = MCO1_PIN;
+		config.MODE = GPIO_MODE_AF_PP;
+		config.SPEED = GPIO_SPEED_FREQ_HIGH;
+		config.PULL = GPIO_NOPULL;
+		config.ALT = (uint8_t)0x00;
+		GPIO_Config(MCO1_GPIO_PORT, &config);
+
+		MODIFY_REG(RCC->CFGR, (RCC_CFGR_MCO1 | RCC_CFGR_MCO1PRE), (MCO_SRC | MCO_DIV));
+	}
+	else
+	{
+		MCO2_CLK_ENABLE();
+
+		config.PIN = MCO2_PIN;
+		config.MODE = GPIO_MODE_AF_PP;
+		config.SPEED = GPIO_SPEED_FREQ_HIGH;
+		config.PULL = GPIO_NOPULL;
+		config.ALT = (uint8_t)0x00;
+		GPIO_Config(MCO2_GPIO_PORT, &config);
+
+		MODIFY_REG(RCC->CFGR, (RCC_CFGR_MCO2 | RCC_CFGR_MCO2PRE), (MCO_SRC | (MCO_DIV << 3)));
+	}
+}
+
 uint32_t Get_SysClock_Freq(void)
 {
 	uint32_t pllm = 0, pllvco = 0, pllp = 0;
@@ -237,10 +280,86 @@ void Delay_Ms(uint32_t delay_time)
 	uint32_t TickStart = uwTick;
 	uint32_t wait = delay_time;
 
-	if(wait < 0xffffffffU)
+	if(wait < MS_MAX_DELAY)
 	{
 		wait += (uint32_t)1;
 	}
 
 	while((uwTick - TickStart) < wait);
+}
+
+uint32_t RCC_GetPCLK_Freq(uint32_t cfgr_ppre, uint32_t cfgr_pos)
+{
+	return (SystemCoreClock >> APBPrescTable[cfgr_ppre >> cfgr_pos]);
+}
+
+Error_HandleTypeDef PeriphCLKConfig(RCC_Periph_CLK_ConfigTypedef *periph_clk_config)
+{
+	uint32_t TickStart = 0;
+	uint32_t tmpreg0 = 0;
+	uint32_t plli2s_used = 0;
+	uint32_t pllsai_used = 0;
+
+	if(((periph_clk_config->PeriphClockSelection) & (uint32_t)0x80000) == (uint32_t)0x80000U)
+	{
+		MODIFY_REG(RCC->DCKCFGR1, RCC_DCKCFGR1_SAI1SEL, (uint32_t)(periph_clk_config->Sai1ClockSelection));
+		if((periph_clk_config->Sai1ClockSelection) == (uint32_t)0x00U)
+		{
+			pllsai_used = 1;
+		}
+	}
+
+	if(((periph_clk_config->PeriphClockSelection) & 0x40U) == 0x40U)
+	{
+		MODIFY_REG(RCC->DCKCFGR2, RCC_DCKCFGR2_USART1SEL, (uint32_t)(periph_clk_config->Usart1ClockSelection));
+	}
+
+	if(pllsai_used == 1)
+	{
+		RCC->CR &= ~(RCC_CR_PLLSAION);
+
+		TickStart = uwTick;
+		while(((RCC->CR & RCC_CR_PLLSAIRDY) == RCC_CR_PLLSAIRDY) == RESET)
+		{
+			if((uwTick - TickStart) > PLLSAI_TIMEOUT_VALUE)
+			{
+				return STATE_ERROR;
+			}
+		}
+
+	    if(((((periph_clk_config->PeriphClockSelection) & (uint32_t)0x80000U) == (uint32_t)0x80000U) && (periph_clk_config->Sai1ClockSelection == (uint32_t)0x00U)) ||\
+	       ((((periph_clk_config->PeriphClockSelection) & (uint32_t)0x100000U) == (uint32_t)0x100000) && (periph_clk_config->Sai2ClockSelection == (uint32_t)0x00U)))
+	    {
+	    	tmpreg0 = ((RCC->PLLSAICFGR & RCC_PLLSAICFGR_PLLSAIP) >> RCC_PLLSAICFGR_PLLSAIP_Pos);
+
+	    	RCC->PLLSAICFGR = ((periph_clk_config->PLLSAI.PLLSAIN) << RCC_PLLSAICFGR_PLLSAIN_Pos) |
+	    			tmpreg0 |
+					((periph_clk_config->PLLSAI.PLLSAIQ) << RCC_PLLSAICFGR_PLLSAIQ_Pos);
+
+	    	MODIFY_REG(RCC->DCKCFGR1, RCC_DCKCFGR1_PLLSAIDIVQ, (periph_clk_config->PLLSAIDivQ - 1) << 8);
+	    }
+
+	    if((((periph_clk_config->PeriphClockSelection) & (uint32_t)0x200000U) == (uint32_t)0x200000U) && (periph_clk_config->Clk48ClockSelection == RCC_DCKCFGR2_CK48MSEL))
+		{
+
+	    	tmpreg0 = ((RCC->PLLSAICFGR & RCC_PLLSAICFGR_PLLSAIQ) >> RCC_PLLSAICFGR_PLLSAIQ_Pos);
+
+	    	RCC->PLLSAICFGR = ((periph_clk_config->PLLSAI.PLLSAIN) << RCC_PLLSAICFGR_PLLSAIN_Pos) |
+					((periph_clk_config->PLLSAI.PLLSAIP) << RCC_PLLSAICFGR_PLLSAIP_Pos) |
+					tmpreg0;
+		}
+
+	    (RCC->CR |= (RCC_CR_PLLSAION));
+
+	    TickStart = uwTick;
+
+	    while(((RCC->CR & RCC_CR_PLLSAIRDY) == RCC_CR_PLLSAIRDY) == RESET)
+	    {
+			if((uwTick - TickStart) > PLLSAI_TIMEOUT_VALUE)
+			{
+				return STATE_ERROR;
+			}
+	    }
+	}
+	return STATE_OK;
 }

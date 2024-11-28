@@ -1,0 +1,7 @@
+../Src/System/Driver/uart.c:12:21:UART_Config	4
+../Src/System/Driver/uart.c:46:21:UART_SetConfig	70
+../Src/System/Driver/uart.c:151:21:UART_CheckIdleState	4
+../Src/System/Driver/uart.c:190:6:UART_Pin_Config	3
+../Src/System/Driver/uart.c:223:21:UART_WaitOnFlagUntilTimeout	10
+../Src/System/Driver/uart.c:274:13:UART_EndRxTransfer	5
+../Src/System/Driver/uart.c:290:21:UART_Transmit	10
