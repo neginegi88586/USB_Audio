@@ -1,7 +1,7 @@
-使用MCU: STM32F723VET6
-開発環境:
-・IDE: STM32CubeIDE
-・デバッガー: STLINK-V3MINIE
+ - 使用MCU: STM32F723VET6
+ - 開発環境:
+  - IDE: STM32CubeIDE
+  - デバッガー: STLINK-V3MINIE
 
  - 未完成の為、このプロジェクトを使用しても、ハイスピードUSBでオーディオ機器が作れる訳ではありません。
  - 基本的には自分でレジスタを叩いて作っています(レジスタ定義ファイル等はCMSISのヘッダー・ソースを使用)。
