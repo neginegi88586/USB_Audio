@@ -280,7 +280,6 @@ void UART_Pin_Config(UART_HandleTypeDef *huart);
 Error_HandleTypeDef UART_CheckIdleState(UART_HandleTypeDef *huart);
 Error_HandleTypeDef UART_WaitOnFlagUntilTimeout(UART_HandleTypeDef *huart, uint32_t Flag, FlagStatus Status,
                                               uint32_t Tickstart, uint32_t Timeout);
-static void UART_EndRxTransfer(UART_HandleTypeDef *huart);
 Error_HandleTypeDef UART_Transmit(UART_HandleTypeDef *huart, const uint8_t *pData, uint16_t Size, uint32_t Timeout);
 
 #endif /* INC_SYSTEM_DRIVER_UART_H_ */

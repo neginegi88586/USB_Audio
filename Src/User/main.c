@@ -153,7 +153,10 @@ static void UART_Init(void)
 	huart1.INIT.OVER_SAMPLE = 0x00U;
 	huart1.INIT.ONEB_SAMPLE = 0x00U;
 	huart1.ADV_INIT.ADV_FEAT_INIT = 0x00U;
-	UART_Config(&huart1);
+	if(UART_Config(&huart1) != STATE_OK)
+	{
+		Error_Handler();
+	}
 }
 
 void Error_Handler(void)

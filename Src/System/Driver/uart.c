@@ -9,6 +9,9 @@
 #include "gpio.h"
 #include "clock.h"
 
+static void UART_EndRxTransfer(UART_HandleTypeDef *huart);
+
+
 Error_HandleTypeDef UART_Config(UART_HandleTypeDef *huart)
 {
 	if(huart == NULL)
