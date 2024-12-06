@@ -33,7 +33,7 @@ Error_HandleTypeDef UART_Config(UART_HandleTypeDef *huart)
 
 	}
 
-	if(UART_SetConfig(huart) != STATE_ERROR)
+	if(UART_SetConfig(huart) == STATE_ERROR)
 	{
 		return STATE_ERROR;
 	}

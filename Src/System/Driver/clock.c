@@ -20,6 +20,7 @@
 
 Error_HandleTypeDef Clock_Setup_OSC(OSC_ConfigSetTypeDef *osc_config)
 {
+	uint32_t pll_config;
 	uint32_t TickStart;
 	if(osc_config == NULL)
 	{
@@ -67,7 +68,7 @@ Error_HandleTypeDef Clock_Setup_OSC(OSC_ConfigSetTypeDef *osc_config)
 	}
 
 	/* ---------------------HSI Configuration--------------------- */
-	if((osc_config->OSC_TYPE & OSC_TYPE_HSE) == OSC_TYPE_HSE)
+	if((osc_config->OSC_TYPE & OSC_TYPE_HSI) == OSC_TYPE_HSI)
 	{
 		if((RCC->CFGR & RCC_CFGR_SWS) == RCC_CFGR_SWS_HSI || ((RCC->CFGR & RCC_CFGR_SWS) == RCC_CFGR_SWS_PLL && (RCC->PLLCFGR & RCC_PLLCFGR_PLLSRC) == RCC_PLLCFGR_PLLSRC_HSI))
 		{
@@ -110,6 +111,68 @@ Error_HandleTypeDef Clock_Setup_OSC(OSC_ConfigSetTypeDef *osc_config)
 			}
 		}
 	}
+
+	if(osc_config->PLL_SET.PLL_STATE != PLL_NONE)
+	{
+		if((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL)
+		{
+			if(osc_config->PLL_SET.PLL_STATE == PLL_ON)
+			{
+				PLL_DISEBLE();
+
+				TickStart = uwTick;
+
+				while((RCC->CR & RCC_CR_PLLON) != RESET)
+				{
+					if((uwTick - TickStart) > PLL_TIMEOUT_VALUE)
+					{
+						return STATE_TIMEOUT;
+					}
+				}
+
+				PLL_CONFIG(osc_config->PLL_SET.PLLSRC, osc_config->PLL_SET.PLLM, osc_config->PLL_SET.PLLN, osc_config->PLL_SET.PLLP, osc_config->PLL_SET.PLLQ);
+
+				PLL_ENABLE();
+
+				TickStart = uwTick;
+
+				while((RCC->CR & RCC_CR_PLLON) == RESET)
+				{
+					if((uwTick - TickStart) > PLL_TIMEOUT_VALUE)
+					{
+						return STATE_TIMEOUT;
+					}
+				}
+			}
+			else
+			{
+				PLL_DISEBLE();
+
+				TickStart = uwTick;
+
+				while((RCC->CR & RCC_CR_PLLON) != RESET)
+				{
+					if((uwTick - TickStart) > PLL_TIMEOUT_VALUE)
+					{
+						return STATE_TIMEOUT;
+					}
+				}
+			}
+		}
+		else
+		{
+			pll_config = RCC->PLLCFGR;
+			if(osc_config->PLL_SET.PLL_STATE == PLL_OFF ||
+					READ_BIT(pll_config, RCC_PLLCFGR_PLLSRC) != osc_config->PLL_SET.PLLSRC ||
+					READ_BIT(pll_config, RCC_PLLCFGR_PLLM) != osc_config->PLL_SET.PLLM ||
+					READ_BIT(pll_config, RCC_PLLCFGR_PLLN) != osc_config->PLL_SET.PLLN << RCC_PLLCFGR_PLLN_Pos ||
+					READ_BIT(pll_config, RCC_PLLCFGR_PLLP) != (((osc_config->PLL_SET.PLLP) >> 1U) - 1U) << RCC_PLLCFGR_PLLP_Pos ||
+					READ_BIT(pll_config, RCC_PLLCFGR_PLLQ) != osc_config->PLL_SET.PLLQ << RCC_PLLCFGR_PLLQ_Pos)
+			{
+				return STATE_ERROR;
+			}
+		}
+	}
 	return STATE_OK;
 }
 
@@ -126,9 +189,13 @@ Error_HandleTypeDef Clock_Setup_Clock(Clock_ConfigTypeDef *clock_config)
 	{
 		FLASH_SET_LATENCY(clock_config->FLatency);
 
-		if(FLASH_GET_LATENCY() != clock_config->FLatency)
+		TickStart = uwTick;
+		while((FLASH->ACR & FLASH_ACR_LATENCY) != clock_config->FLatency)
 		{
-			return STATE_ERROR;
+			if((uwTick - TickStart) > 1000)
+			{
+				return STATE_TIMEOUT;
+			}
 		}
 	}
 
@@ -150,21 +217,21 @@ Error_HandleTypeDef Clock_Setup_Clock(Clock_ConfigTypeDef *clock_config)
 	{
 		if((clock_config->SYSCLK_SOURCE) == RCC_SYSCLKSOURCE_HSE)
 		{
-			if((RCC->CR & RCC_CR_HSERDY) == RESET)
+			if((RCC->CR & RCC_CR_HSERDY) != RESET)
 			{
 				return STATE_ERROR;
 			}
 		}
 		else if((clock_config->SYSCLK_SOURCE) == RCC_SYSCLKSOURCE_PLLCLK)
 		{
-			if((RCC->CR & RCC_CR_PLLRDY) == RESET)
+			if((RCC->CR & RCC_CR_PLLRDY) != RESET)
 			{
 				return STATE_ERROR;
 			}
 		}
 		else
 		{
-			if((RCC->CR & RCC_CR_HSIRDY) == RESET)
+			if((RCC->CR & RCC_CR_HSIRDY) != RESET)
 			{
 				return STATE_ERROR;
 			}
@@ -174,7 +241,7 @@ Error_HandleTypeDef Clock_Setup_Clock(Clock_ConfigTypeDef *clock_config)
 
 		TickStart = uwTick;
 
-		while((RCC->CFGR & RCC_CFGR_SWS) == (clock_config->SYSCLK_SOURCE) << RCC_CFGR_SWS_Pos)
+		while((RCC->CFGR & RCC_CFGR_SWS) != (clock_config->SYSCLK_SOURCE) << RCC_CFGR_SWS_Pos)
 		{
 			if((uwTick - TickStart) > CLK_SW_TIMEOUT_VALUE)
 			{
@@ -203,6 +270,8 @@ Error_HandleTypeDef Clock_Setup_Clock(Clock_ConfigTypeDef *clock_config)
 	}
 
 	SystemCoreClock = Get_SysClock_Freq() >> AHBPrescTable[(RCC->CFGR & RCC_CFGR_HPRE) >> RCC_CFGR_HPRE_Pos];
+
+	Tick_Init(uwTickPrio);
 
 	return STATE_OK;
 }
@@ -246,28 +315,36 @@ uint32_t Get_SysClock_Freq(void)
 	switch (RCC->CFGR & RCC_CFGR_SWS)
 	{
 	case RCC_SYSCLKSOURCE_STATUS_HSI:
+	{
 		sysclock_freq = HSI_VALUE;
 		break;
+	}
 	case RCC_SYSCLKSOURCE_STATUS_HSE:
+	{
 		sysclock_freq = HSE_VALUE;
 		break;
+	}
 	case RCC_SYSCLKSOURCE_STATUS_PLLCLK:
+	{
 		pllm = RCC->PLLCFGR & RCC_PLLCFGR_PLLM;
 		if((RCC->PLLCFGR & RCC_PLLCFGR_PLLSRC) != RCC_PLLCFGR_PLLSRC_HSI)
 		{
-			pllvco = (uint32_t)((((uint64_t)HSE_VALUE * ((uint64_t)((RCC->PLLCFGR & RCC_PLLCFGR_PLLN) >> RCC_PLLCFGR_PLLN_Pos)))) / (uint64_t)pllm);
+	        pllvco = (uint32_t)((((uint64_t) HSE_VALUE * ((uint64_t)((RCC->PLLCFGR & RCC_PLLCFGR_PLLN) >> RCC_PLLCFGR_PLLN_Pos)))) / (uint64_t)pllm);
 		}
 		else
 		{
-			pllvco = (uint32_t)((((uint64_t)HSI_VALUE * ((uint64_t)((RCC->PLLCFGR & RCC_PLLCFGR_PLLN) >> RCC_PLLCFGR_PLLN_Pos)))) / (uint64_t)pllm);
+	        pllvco = (uint32_t)((((uint64_t) HSI_VALUE * ((uint64_t)((RCC->PLLCFGR & RCC_PLLCFGR_PLLN) >> RCC_PLLCFGR_PLLN_Pos)))) / (uint64_t)pllm);
 		}
-		pllp = ((((RCC->PLLCFGR & RCC_PLLCFGR_PLLP) >> RCC_PLLCFGR_PLLP_Pos) + 1) * 2);
+	    pllp = ((((RCC->PLLCFGR & RCC_PLLCFGR_PLLP) >> RCC_PLLCFGR_PLLP_Pos) + 1) * 2);
 
-		sysclock_freq = pllvco / pllp;
+	    sysclock_freq = pllvco / pllp;
 		break;
+	}
 	default:
+	{
 		sysclock_freq = HSI_VALUE;
 		break;
+	}
 	}
 
 	Tick_Init(uwTickPrio);

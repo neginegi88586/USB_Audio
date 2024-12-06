@@ -1,7 +1,7 @@
-../Src/System/Driver/clock.c:21:21:Clock_Setup_OSC	27
-../Src/System/Driver/clock.c:116:21:Clock_Setup_Clock	19
-../Src/System/Driver/clock.c:210:6:MCO_Config	2
-../Src/System/Driver/clock.c:242:10:Get_SysClock_Freq	6
-../Src/System/Driver/clock.c:278:6:Delay_Ms	3
-../Src/System/Driver/clock.c:291:10:RCC_GetPCLK_Freq	1
-../Src/System/Driver/clock.c:296:21:PeriphCLKConfig	15
+../Src/System/Driver/clock.c:21:21:Clock_Setup_OSC	42
+../Src/System/Driver/clock.c:179:21:Clock_Setup_Clock	20
+../Src/System/Driver/clock.c:279:6:MCO_Config	2
+../Src/System/Driver/clock.c:311:10:Get_SysClock_Freq	6
+../Src/System/Driver/clock.c:355:6:Delay_Ms	3
+../Src/System/Driver/clock.c:368:10:RCC_GetPCLK_Freq	1
+../Src/System/Driver/clock.c:373:21:PeriphCLKConfig	15

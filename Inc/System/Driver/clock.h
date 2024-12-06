@@ -13,10 +13,10 @@
 
 typedef enum
 {
-	HSE_OFF = 0,
-	HSE_ON,
-	HSE_BYP,
-	HSE_Default
+	HSE_OFF = 0x00,
+	HSE_ON = RCC_CR_HSEON,
+	HSE_BYP = (RCC_CR_HSEBYP | RCC_CR_HSEON),
+	HSE_Default = 0x00
 }HSE_StateTypeDef;
 
 typedef enum
@@ -29,14 +29,15 @@ typedef enum
 
 typedef enum
 {
-	PLL_OFF = 0,
-	PLL_ON,
+	PLL_NONE = 0x00U,
+	PLL_OFF = 0x01U,
+	PLL_ON = 0x02U,
 }PLL_StateTypeDef;
 
 typedef enum
 {
-	PLLSRC_HSI = 0,
-	PLLSRC_HSE,
+	PLLSRC_HSE = RCC_PLLCFGR_PLLSRC_HSE,
+	PLLSRC_HSI = RCC_PLLCFGR_PLLSRC_HSI,
 }PLL_SourceTypeDef;
 
 typedef struct
@@ -278,6 +279,15 @@ typedef struct
 #define RCC_HSI_CALIBRATION_ADJUST(__HSICALIBRATIONVALUE__) \
 		(MODIFY_REG(RCC->CR, RCC_CR_HSITRIM, (uint32_t)(__HSICALIBRATIONVALUE__) << RCC_CR_HSITRIM_Pos))
 
+#define PLL_ENABLE()						   SET_BIT(RCC->CR, RCC_CR_PLLON)
+#define PLL_DISEBLE()						   CLEAR_BIT(RCC->CR, RCC_CR_PLLON)
+
+#define PLL_CONFIG(__PLL_SOURCE__, __PLLM__, __PLLN__, __PLLP__, __PLLQ__) \
+        (RCC->PLLCFGR = (0x20000000 | (__PLL_SOURCE__) | (__PLLM__)| \
+        ((__PLLN__) << RCC_PLLCFGR_PLLN_Pos)                          | \
+        ((((__PLLP__) >> 1) -1) << RCC_PLLCFGR_PLLP_Pos)              | \
+        ((__PLLQ__) << RCC_PLLCFGR_PLLQ_Pos)))
+
 
 #define RCC_CLK_TYPE_SYSCLK					   ((uint32_t)0x01U)
 #define RCC_CLK_TYPE_HCLK					   ((uint32_t)0x02U)
@@ -310,7 +320,9 @@ typedef struct
 
 
 #define FLASH_GET_LATENCY()					   READ_BIT((FLASH->ACR), FLASH_ACR_LATENCY)
-#define FLASH_SET_LATENCY(__LATENCY__)		   MODIFY_REG(FLASH->ACR, FLASH_ACR_LATENCY, __LATENCY__)
+#define FLASH_SET_LATENCY(__LATENCY__)		   \
+											   CLEAR_BIT(FLASH->ACR, FLASH_ACR_LATENCY);   \
+											   SET_BIT(FLASH->ACR, __LATENCY__);
 
 
 #define RCC_GPIOCLK_ENABLE(__RCC_GPIO_PORT__)  SET_BIT(RCC->AHB1ENR, (uint32_t)__RCC_GPIO_PORT__)

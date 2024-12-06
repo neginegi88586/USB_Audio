@@ -28,6 +28,8 @@ UART_HandleTypeDef huart1;
 __IO uint32_t uwTick;
 uint32_t uwTickPrio = (1UL << __NVIC_PRIO_BITS);
 
+char text[20] = "Hello World!!";
+
 
 void System_Clock_Config(void);
 static void GPIO_Init(void);
@@ -47,6 +49,9 @@ int main(void)
 	GPIO_Init();
 	UART_Init();
 
+	Delay_Ms(100);
+	UART_Transmit(&huart1, (uint8_t*)text, (sizeof(text) / sizeof(text[0])), 100);
+
 	while(1)
 	{
 		GPIO_Write(GPIOA, (1<<0), GPIO_SET);
@@ -62,8 +67,21 @@ void System_Clock_Config(void)
 	Clock_ConfigTypeDef clock_config = {0};
 	uint32_t TickStart;
 
-	SET_BIT(RCC->APB1ENR, RCC_APB1ENR_PWREN);
-	MODIFY_REG(PWR->CR1, PWR_CR1_VOS, PWR_CR1_VOS);
+	do
+	{
+		__IO uint32_t tmpreg;
+		SET_BIT(RCC->APB1ENR, RCC_APB1ENR_PWREN);
+		tmpreg = READ_BIT(RCC->APB1ENR, RCC_APB1ENR_WWDGEN);
+		UNUSED(tmpreg);
+	}while(0);
+
+	do
+	{
+		__IO uint32_t tmpreg;
+		MODIFY_REG(PWR->CR1, PWR_CR1_VOS, PWR_CR1_VOS);
+        tmpreg = READ_BIT(RCC->APB1ENR, RCC_APB1ENR_WWDGEN);
+        UNUSED(tmpreg);
+	}while(0);
 
 	config.OSC_TYPE = OSC_TYPE_HSE;
 	config.HSE_SET.HSE_STATE = HSE_ON;
@@ -72,18 +90,25 @@ void System_Clock_Config(void)
 	config.PLL_SET.PLLSRC = PLLSRC_HSE;
 	config.PLL_SET.PLLM = 12;
 	config.PLL_SET.PLLN = 216;
-	config.PLL_SET.PLLP = 0;
+	config.PLL_SET.PLLP = (uint32_t)0x02U;
 	config.PLL_SET.PLLQ = 9;
 	if(Clock_Setup_OSC(&config) != STATE_OK)
 	{
 		Error_Handler();
 	}
 
-	SET_BIT(RCC->APB1ENR, RCC_APB1ENR_PWREN);
+	do
+	{
+		__IO uint32_t tmpreg;
+		SET_BIT(RCC->APB1ENR, RCC_APB1ENR_PWREN);
+		tmpreg = READ_BIT(RCC->APB1ENR, RCC_APB1ENR_WWDGEN);
+		UNUSED(tmpreg);
+	}while(0);
+
 	PWR->CR1 |= (uint32_t)PWR_CR1_ODEN;
 
 	TickStart = uwTick;
-	while(!(PWR->CSR1 & PWR_CSR1_ODRDY))
+	while(((PWR->CSR1 & PWR_CSR1_ODRDY) == PWR_CSR1_ODRDY) == RESET)
 	{
 		if((uwTick - TickStart) > 1000)
 		{
@@ -94,7 +119,7 @@ void System_Clock_Config(void)
 	PWR->CR1 |= (uint32_t)PWR_CR1_ODSWEN;
 
 	TickStart = uwTick;
-	while(!(PWR->CSR1 & PWR_CSR1_ODSWRDY))
+	while(((PWR->CSR1 & PWR_CSR1_ODSWRDY) == PWR_CSR1_ODSWRDY) == RESET)
 	{
 		if((uwTick - TickStart) > 1000)
 		{
@@ -108,7 +133,7 @@ void System_Clock_Config(void)
 	clock_config.APB1CLK_DIV = RCC_HCLK_DIV4;
 	clock_config.APB2CLK_DIV = RCC_HCLK_DIV2;
 	clock_config.FLatency = FLASH_ACR_LATENCY_7WS;
-	if(Clock_Setup_Clock(&clock_config))
+	if(Clock_Setup_Clock(&clock_config) != STATE_OK)
 	{
 		Error_Handler();
 	}

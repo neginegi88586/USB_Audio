@@ -11,7 +11,7 @@
 #include "main.h"
 
 
-#define TICK_INT_PRIORITY		3U
+#define TICK_INT_PRIORITY		0x03U
 
 
 void System_Config(void);

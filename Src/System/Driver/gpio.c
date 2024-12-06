@@ -104,7 +104,7 @@ void GPIO_Config(GPIO_TypeDef *GPIOx, GPIO_ConfigTypeDef *GPIO_Conf)
 
 void GPIO_Write(GPIO_TypeDef *GPIOx, uint16_t Pin, GPIO_State State)
 {
-	if(State == GPIO_RESET)
+	if(State != GPIO_RESET)
 	{
 		GPIOx->BSRR = Pin;
 	}

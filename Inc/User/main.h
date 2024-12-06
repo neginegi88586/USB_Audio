@@ -12,6 +12,8 @@
 #include <stdint.h>
 #include "stm32f7xx.h"
 
+#define UNUSED(X) (void)X
+
 typedef enum
 {
 	STATE_OK = 0U,
