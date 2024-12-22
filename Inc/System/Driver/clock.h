@@ -282,8 +282,8 @@ typedef struct
 #define PLL_ENABLE()						   SET_BIT(RCC->CR, RCC_CR_PLLON)
 #define PLL_DISEBLE()						   CLEAR_BIT(RCC->CR, RCC_CR_PLLON)
 
-#define PLL_CONFIG(__PLL_SOURCE__, __PLLM__, __PLLN__, __PLLP__, __PLLQ__) \
-        (RCC->PLLCFGR = (0x20000000 | (__PLL_SOURCE__) | (__PLLM__)| \
+#define RCC_PLL_CONFIG(__RCC_PLLSource__, __PLLM__, __PLLN__, __PLLP__, __PLLQ__)     \
+        (RCC->PLLCFGR = (0x20000000 | (__RCC_PLLSource__) | (__PLLM__)| \
         ((__PLLN__) << RCC_PLLCFGR_PLLN_Pos)                          | \
         ((((__PLLP__) >> 1) -1) << RCC_PLLCFGR_PLLP_Pos)              | \
         ((__PLLQ__) << RCC_PLLCFGR_PLLQ_Pos)))
@@ -384,6 +384,16 @@ typedef struct
 #define RCC_UART8CLKSOURCE_SYSCLK      		   RCC_DCKCFGR2_UART8SEL_0
 #define RCC_UART8CLKSOURCE_HSI         		   RCC_DCKCFGR2_UART8SEL_1
 #define RCC_UART8CLKSOURCE_LSE         		   RCC_DCKCFGR2_UART8SEL
+
+
+#define RCC_FLAG_HSIRDY                  ((uint8_t)0x21U)
+#define RCC_FLAG_HSERDY                  ((uint8_t)0x31U)
+#define RCC_FLAG_PLLRDY                  ((uint8_t)0x39U)
+#define RCC_FLAG_PLLI2SRDY               ((uint8_t)0x3BU)
+#define RCC_FLAG_PLLSAIRDY               ((uint8_t)0x3CU)
+
+#define RCC_FLAG_MASK  ((uint8_t)0x1F)
+#define __RCC_GET_FLAG(__FLAG__) (((((((__FLAG__) >> 5) == 1)? RCC->CR :((((__FLAG__) >> 5) == 2) ? RCC->BDCR :((((__FLAG__) >> 5) == 3)? RCC->CSR :RCC->CIR))) & ((uint32_t)1 << ((__FLAG__) & RCC_FLAG_MASK)))!= 0)? 1 : 0)
 
 
 Error_HandleTypeDef Clock_Setup_OSC(OSC_ConfigSetTypeDef *osc_config);

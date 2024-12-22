@@ -10,11 +10,28 @@
 
 void System_Config(void)
 {
-	NVIC_SetPriorityGrouping((uint32_t)TICK_INT_PRIORITY);
+	NVIC_SetPriorityGrouping((uint32_t)PRIORITY_GROUP);
 
 	Tick_Init(TICK_INT_PRIORITY);
 
-	SET_BIT(RCC->APB1ENR, RCC_APB1ENR_PWREN);
+	do
+	{
+		__IO uint32_t tmpreg;
+		SET_BIT(RCC->APB1ENR, RCC_APB1ENR_PWREN);
+		tmpreg = READ_BIT(RCC->APB1ENR, RCC_APB1ENR_PWREN);
+		UNUSED(tmpreg);
+	}
+	while(0);
+
+	do
+	{
+		__IO uint32_t tmpreg;
+		SET_BIT(RCC->APB2ENR, RCC_APB2ENR_SYSCFGEN);
+		tmpreg = READ_BIT(RCC->APB2ENR, RCC_APB2ENR_SYSCFGEN);
+		UNUSED(tmpreg);
+	}
+	while(0);
+
 	MODIFY_REG(PWR->CR1, PWR_CR1_VOS, PWR_CR1_VOS);
 }
 

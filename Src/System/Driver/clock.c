@@ -114,7 +114,7 @@ Error_HandleTypeDef Clock_Setup_OSC(OSC_ConfigSetTypeDef *osc_config)
 
 	if(osc_config->PLL_SET.PLL_STATE != PLL_NONE)
 	{
-		if((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL)
+		if((RCC->CFGR & RCC_CFGR_SWS) == RCC_CFGR_SWS_PLL)
 		{
 			if(osc_config->PLL_SET.PLL_STATE == PLL_ON)
 			{
@@ -130,7 +130,7 @@ Error_HandleTypeDef Clock_Setup_OSC(OSC_ConfigSetTypeDef *osc_config)
 					}
 				}
 
-				PLL_CONFIG(osc_config->PLL_SET.PLLSRC, osc_config->PLL_SET.PLLM, osc_config->PLL_SET.PLLN, osc_config->PLL_SET.PLLP, osc_config->PLL_SET.PLLQ);
+				RCC_PLL_CONFIG(osc_config->PLL_SET.PLLSRC, osc_config->PLL_SET.PLLM, osc_config->PLL_SET.PLLN, osc_config->PLL_SET.PLLP, osc_config->PLL_SET.PLLQ);
 
 				PLL_ENABLE();
 

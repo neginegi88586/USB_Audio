@@ -44,8 +44,6 @@
 /** @addtogroup Library_configuration_section
   * @{
   */
-#define USER_VECT_TAB_ADDRESS
-
 /**
   * @brief STM32 Family
   */

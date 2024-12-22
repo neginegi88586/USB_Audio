@@ -78,8 +78,9 @@ void System_Clock_Config(void)
 	do
 	{
 		__IO uint32_t tmpreg;
-		MODIFY_REG(PWR->CR1, PWR_CR1_VOS, PWR_CR1_VOS);
-        tmpreg = READ_BIT(RCC->APB1ENR, RCC_APB1ENR_WWDGEN);
+		CLEAR_BIT(PWR->CR1, PWR_CR1_VOS);
+		SET_BIT(PWR->CR1, PWR_CR1_VOS);
+        tmpreg = READ_BIT(PWR->CR1, PWR_CR1_VOS);
         UNUSED(tmpreg);
 	}while(0);
 
@@ -108,7 +109,7 @@ void System_Clock_Config(void)
 	PWR->CR1 |= (uint32_t)PWR_CR1_ODEN;
 
 	TickStart = uwTick;
-	while(((PWR->CSR1 & PWR_CSR1_ODRDY) == PWR_CSR1_ODRDY) == RESET)
+	while(!((PWR->CSR1 & PWR_CSR1_ODRDY) == PWR_CSR1_ODRDY))
 	{
 		if((uwTick - TickStart) > 1000)
 		{
@@ -119,7 +120,7 @@ void System_Clock_Config(void)
 	PWR->CR1 |= (uint32_t)PWR_CR1_ODSWEN;
 
 	TickStart = uwTick;
-	while(((PWR->CSR1 & PWR_CSR1_ODSWRDY) == PWR_CSR1_ODSWRDY) == RESET)
+	while(!((PWR->CSR1 & PWR_CSR1_ODSWRDY) == PWR_CSR1_ODSWRDY))
 	{
 		if((uwTick - TickStart) > 1000)
 		{
@@ -139,6 +140,16 @@ void System_Clock_Config(void)
 	}
 
 	MCO_Config(RCC_MCO1, RCC_CFGR_MCO1_1, (uint32_t)0x00);
+
+
+	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
+	GPIOA->MODER &= ~((3U << (13 * 2)) | (3U << (14 * 2)));
+	GPIOA->MODER |= ((2U << (13 * 2)) | (2U << (14 * 2)));
+
+	GPIOA->AFR[1] &= ~((15U << ((13 - 8) * 4)) | (15U << ((14 - 8) * 4)));
+	GPIOA->AFR[1] |= ((0U << ((13 - 8) * 4)) | (0U << ((14 - 8) * 4)));
+
+	SET_BIT(RCC->APB2ENR, RCC_APB2ENR_SYSCFGEN);
 }
 
 static void GPIO_Init(void)
